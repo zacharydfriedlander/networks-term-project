@@ -1,0 +1,7 @@
+picklejar
+*.swp
+*.pyc
+.ipynb_checkpoints
+*.zip
+attack_log.txt
+
