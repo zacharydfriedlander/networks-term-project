@@ -1,0 +1,23 @@
+# Networks.yaml - defining all relevant parameters of the network in an
+# easily extensible and human-readible format
+
+---
+  name : orgnet
+  filename : datasets/org_net_informal_links.txt
+  directed : No
+  data :
+    weight : float
+
+---
+  name : yeast
+  filename : datasets/Yeast_transcription.txt
+  directed : No
+  data :
+    weight : float
+
+---
+  name : wag
+  filename : datasets/word_association_graph_DSF.txt
+  directed : Yes
+  data :
+    weight : float

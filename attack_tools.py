@@ -16,9 +16,6 @@ def random_attack(network, attack_length):
         u = random.choice(aftermath.nodes())
         aftermath.remove_node(u)
 
-    print "RANDOM: removed %d nodes in %f s" % (attack_length, time.clock() -
-                                                tstart)
-
     return aftermath
 
 def targeted_attack(network, attack_length):
@@ -39,10 +36,6 @@ def targeted_attack(network, attack_length):
             degs[node] -= 1
         aftermath.remove_node(u)
         del degs[u]
-
-    print "TARGETED: removed %d nodes in %f s" % (attack_length, time.clock()
-                                                  - tstart)
-
 
     return aftermath
 
