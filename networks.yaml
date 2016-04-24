@@ -19,5 +19,5 @@
   name : wag
   filename : datasets/word_association_graph_DSF.txt
   directed : Yes
-  data :
+  data:
     weight : float

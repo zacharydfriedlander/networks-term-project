@@ -16,6 +16,8 @@ def random_attack(network, attack_length):
         u = random.choice(aftermath.nodes())
         aftermath.remove_node(u)
 
+    print "Random attack on %d nodes complete (%f seconds)" % (attack_length,
+                                                               time.clock() - tstart)
     return aftermath
 
 def targeted_attack(network, attack_length):
@@ -37,6 +39,31 @@ def targeted_attack(network, attack_length):
         aftermath.remove_node(u)
         del degs[u]
 
+    print "Targeted attack on %d nodes complete (%f seconds)" % (attack_length,
+                                                               time.clock() - tstart)
+    return aftermath
+
+def random_neighbor_attack(network, attack_length):
+    aftermath = network.copy()
+
+    tstart = time.clock()
+
+    node = random.choice(aftermath.nodes())
+
+    for _ in range(attack_length):
+        if aftermath.degree(node) == 0 or aftermath.neighbors(node) == [node]:
+
+            other_nodes = [n for n in aftermath.nodes() if n != node]
+            next_node = random.choice(other_nodes)
+        else:
+            while True:
+                next_node = random.choice(aftermath.neighbors(node))
+                if next_node != node:
+                    break
+        aftermath.remove_node(node)
+        node = next_node
+    print "Random-neighbor attack on %d nodes complete (%f seconds)" % \
+          (attack_length, time.clock() - tstart)
     return aftermath
 
 def gc_size(network, N):
@@ -65,44 +92,34 @@ def attack_comparison_async(network, fractions):
 
     random_q = Queue()
     targeted_q = Queue()
+    rn_q = Queue()
     N = len(network)
     rnd = Process(target=run_attack, args=(network, fractions, random_attack,
                                            random_q,))
     tgt = Process(target=run_attack, args=(network, fractions, targeted_attack,
                                            targeted_q,))
+    rnd_neighbor = Process(target=run_attack, args=(network, fractions,
+                                           random_neighbor_attack, rn_q))
 
     rnd.start()
     tgt.start()
+    rnd_neighbor.start()
 
     rnd.join()
     tgt.join()
+    rnd_neighbor.join()
 
-    random_results, targeted_results = [], []
+    random_results = []
+    targeted_results = []
+    rn_results = []
 
     while not(random_q.empty()):
         random_results.append(random_q.get())
     while not(targeted_q.empty()):
         targeted_results.append(targeted_q.get())
+    while not(rn_q.empty()):
+        rn_results.append(rn_q.get())
 
-    return random_results, targeted_results
 
-def attack_comparison_sync(network, fractions):
-    """
-    Given a network and set of node fractions to remove,
-    simulate random and targeted attacks on that network
-    and return s1/N for the results of each attack. Used as
-    A sanity check for attack_comparisons_async
-    """
-
-    N = len(network)
-    nodes_to_remove = [int(round(f * N)) for f in fractions]
-
-    random_largest_component, targeted_largest_component = [], []
-
-    for n in nodes_to_remove:
-        random_result = random_attack(network, n)
-        targeted_result = targeted_attack(network, n)
-        random_largest_component.append(gc_size(random_result, N))
-        targeted_largest_component.append(gc_size(targeted_result, N))
-
-    return random_largest_component, targeted_largest_component
+    print "Attack Comparison Complete"
+    return random_results, targeted_results, rn_results
