@@ -46,6 +46,8 @@ def targeted_attack(network, attack_length):
 def random_neighbor_attack(network, attack_length):
     aftermath = network.copy()
 
+    degs = {n : aftermath.degree(n) for n in aftermath.nodes()}
+
     tstart = time.clock()
 
     node = random.choice(aftermath.nodes())
@@ -57,12 +59,40 @@ def random_neighbor_attack(network, attack_length):
             next_node = random.choice(other_nodes)
         else:
             while True:
+                neighbor_degs = {n : degs[n] for n in aftermath.neighbors(node)
+                                 if n != node}
+                next_node = max(neighbor_degs, key=neighbor_degs.get)
+                if next_node != node:
+                    break
+        for n in aftermath.neighbors(node):
+            degs[n] -= 1
+
+        aftermath.remove_node(node)
+        del degs[node]
+        node = next_node
+    print "Targetd-neighbor attack on %d nodes complete (%f seconds)" % \
+          (attack_length, time.clock() - tstart)
+    return aftermath
+
+def targeted_neighbor_attack(network, attack_length):
+    aftermath = network.copy()
+
+    tstart = time.clock()
+
+    node = random.choice(aftermath.nodes())
+
+    for _ in range(attack_length):
+        if aftermath.degree(node) == 0 or aftermath.neighbors(node) == [node]:
+            other_nodes = [n for n in aftermath.nodes() if n != node]
+            next_node = random.choice(other_nodes)
+        else:
+            while True:
                 next_node = random.choice(aftermath.neighbors(node))
                 if next_node != node:
                     break
         aftermath.remove_node(node)
         node = next_node
-    print "Random-neighbor attack on %d nodes complete (%f seconds)" % \
+    print "Targeted-neighbor attack on %d nodes complete (%f seconds)" % \
           (attack_length, time.clock() - tstart)
     return aftermath
 
@@ -93,25 +123,34 @@ def attack_comparison_async(network, fractions):
     random_q = Queue()
     targeted_q = Queue()
     rn_q = Queue()
+    tn_q = Queue()
     N = len(network)
+
+
     rnd = Process(target=run_attack, args=(network, fractions, random_attack,
                                            random_q,))
     tgt = Process(target=run_attack, args=(network, fractions, targeted_attack,
                                            targeted_q,))
     rnd_neighbor = Process(target=run_attack, args=(network, fractions,
                                            random_neighbor_attack, rn_q))
+    tgt_neighbor = Process(target=run_attack, args=(network, fractions,
+                                           targeted_neighbor_attack, tn_q))
+
 
     rnd.start()
     tgt.start()
     rnd_neighbor.start()
+    tgt_neighbor.start()
 
     rnd.join()
     tgt.join()
     rnd_neighbor.join()
+    tgt_neighbor.join()
 
     random_results = []
     targeted_results = []
     rn_results = []
+    tn_results = []
 
     while not(random_q.empty()):
         random_results.append(random_q.get())
@@ -119,7 +158,9 @@ def attack_comparison_async(network, fractions):
         targeted_results.append(targeted_q.get())
     while not(rn_q.empty()):
         rn_results.append(rn_q.get())
+    while not(tn_q.empty()):
+        tn_results.append(tn_q.get())
 
 
     print "Attack Comparison Complete"
-    return random_results, targeted_results, rn_results
+    return random_results, targeted_results, rn_results, tn_results

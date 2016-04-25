@@ -10,7 +10,7 @@ def compare_to_random_networks(network, fractions, pfile):
     counterparts. Pickles all data into the given pickle filename
     """
     print "Attacking network..."
-    rnd, tgt, rnd_neighbor = attack_comparison_async(network, fractions)
+    results = attack_comparison_async(network, fractions)
 
     # Create an Erdos-Renyi graph with the same number of nodes and edges
     N = network.number_of_nodes()
@@ -18,22 +18,21 @@ def compare_to_random_networks(network, fractions, pfile):
     er = networkx.generators.gnm_random_graph(N, M)
 
     print "Attacking ER network..."
-    er_rnd, er_tgt, er_rnd_neighbor = attack_comparison_async(er,fractions)
+    er_results = attack_comparison_async(er,fractions)
 
     # Create a configuration-model graph with the same degree sequence
     config = networkx.generators.configuration_model(network.degree().values(),
                                                   create_using=networkx.Graph())
     print "Attacking Config network..."
-    cfg_rnd, cfg_tgt, cfg_rnd_neighbor = attack_comparison_async(config,
-                                                                 fractions)
+    cfg_results = attack_comparison_async(config, fractions)
 
     # Pickle all information
 
     pickle_f = open(pfile, 'w')
 
     pickle.dump(fractions, pickle_f)
-    pickle.dump((rnd, tgt, rnd_neighbor), pickle_f)
-    pickle.dump((er_rnd, er_tgt, er_rnd_neighbor), pickle_f)
-    pickle.dump((cfg_rnd, cfg_tgt, cfg_rnd_neighbor), pickle_f)
+    pickle.dump(results, pickle_f)
+    pickle.dump(er_results, pickle_f)
+    pickle.dump(cfg_results, pickle_f)
 
     pickle_f.close()
