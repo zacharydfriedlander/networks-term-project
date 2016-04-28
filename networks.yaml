@@ -19,5 +19,26 @@
   name : wag
   filename : datasets/word_association_graph_DSF.txt
   directed : Yes
-  data:
+  data :
     weight : float
+
+---
+  name : ecoli
+  filename : datasets/ecoli_links.txt
+  directed : No
+  data :
+    score : float
+
+# ---
+#  name : celegans
+#  filename : datasets/celegans_links.txt
+#  directed : No
+#  data :
+#    score : floatu
+
+# ---
+#   name : drosophilia
+#   filename : datasets/drosophilia_links.txt
+#   directed : No
+#   data :
+#     score : float

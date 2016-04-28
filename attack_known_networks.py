@@ -19,6 +19,9 @@ def main():
                         default='.',
                         help='output for pickle files (default: current directory)',
                         )
+    aparse.add_argument('--update', '-u', action='store_true',
+                        help='Only run network processes for networks which have' +
+                        'not already been analyzed.')
     args = aparse.parse_args()
 
     cfg = open(args.config_path, 'r')
@@ -26,6 +29,9 @@ def main():
     FRACS = linspace(0.05, 0.95, 19)
 
     for net_attrs in yaml.safe_load_all(cfg):
+        picklename = net_attrs["name"] + ".pickle"
+        if args.update and picklename in os.listdir(args.picklejar):
+            continue
 
         print "Analyzing network %s..." % net_attrs['name']
         fname = net_attrs['filename']
@@ -40,9 +46,8 @@ def main():
                                              create_using=networkx.Graph(),
                                              nodetype=str,
                                              data=data)
-        pckl = os.path.normpath(args.picklejar+"/"+net_attrs['name']+
-                                ".pickle")
-
+        print "Network file loaded"
+        pckl = os.path.normpath(args.picklejar+"/"+ picklename)
         ac.compare_to_random_networks(network, FRACS, pckl)
 
         print "Done!"
