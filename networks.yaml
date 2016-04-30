@@ -2,13 +2,6 @@
 # easily extensible and human-readible format
 
 ---
-  name : orgnet
-  filename : datasets/org_net_informal_links.txt
-  directed : No
-  data :
-    weight : float
-
----
   name : yeast
   filename : datasets/Yeast_transcription.txt
   directed : No
@@ -23,22 +16,44 @@
     weight : float
 
 ---
+  name : facebook
+  filename : datasets/facebook_combined.txt
+  directed : No
+  data : {}
+
+---
+  name : enron
+  filename : datasets/email-Enron.txt
+  directed : Yes
+  data : {}
+
+---
+  name : faa
+  filename : datasets/faa.txt
+  directed : Yes
+  data : {}
+
+---
+  name : powergrid
+  filename : datasets/powergrid.txt
+  directed : No
+  data : {}
+---
   name : ecoli
   filename : datasets/ecoli_links.txt
   directed : No
   data :
     score : float
+---
+ name : drosophilia
+ filename : datasets/drosophilia_links.txt
+ directed : No
+ data :
+   score : float
 
 # ---
-#  name : celegans
-#  filename : datasets/celegans_links.txt
-#  directed : No
-#  data :
-#    score : floatu
-
-# ---
-#   name : drosophilia
-#   filename : datasets/drosophilia_links.txt
-#   directed : No
-#   data :
-#     score : float
+# name : celegans
+# filename : datasets/celegans_links.txt
+# directed : No
+# data :
+#   score : float
