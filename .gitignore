@@ -3,5 +3,4 @@ picklejar
 *.pyc
 .ipynb_checkpoints
 *.zip
-attack_log.txt
-
+img
