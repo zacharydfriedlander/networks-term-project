@@ -1,11 +1,16 @@
+"""A collection of functions to run attacks and evaluate network breakdown."""
+
 from multiprocessing import Pipe, Process
 from multiprocessing.pool import ThreadPool
 import networkx
-from attack_tools import *
-
+from attack_tools import (random_attack, targeted_attack, random_neighbor_attack,
+                          targeted_neighbor_attack)
+                          
 def gc_size(network, N):
-        return len(max(networkx.connected_components(network),
-               key=len)) / float(N)
+    """Calculate the proportion of nodes in the largest component of
+    the network"""
+    return len(max(networkx.connected_components(network),
+                   key=len)) / float(N)
 
 def run_attack(attack, pipe):
     """
@@ -28,36 +33,48 @@ def run_attack(attack, pipe):
     pipe.close()
 
 def run_sweeping_attack(attack, pipe):
+    """
+    Given an attack function to run, and a Connection object through which to
+    communicate, receive a network and set of fractions of the total nodes to
+    remove, and simulate attacks on that network for each fraction in an
+    iterative manner by attacking the end result of each the previous attack.
+    Sends S1/N back through the Connection for each fraction.
+    """
     network = pipe.recv()
     fractions = pipe.recv()
 
     N = len(network)
     nodes_to_remove = [f*N for f in fractions]
-    node_remove_deltas = [int(nodes_to_remove[0])] + [int(round(nodes_to_remove[i]
-                                                 - nodes_to_remove[i-1])) for i in
-                                                 range(1,len(nodes_to_remove))]
+    node_remove_deltas = [int(nodes_to_remove[0])] + \
+                         [int(round(nodes_to_remove[i] - nodes_to_remove[i-1]))
+                          for i in range(1, len(nodes_to_remove))]
     for num_nodes in node_remove_deltas:
         network = attack(network, num_nodes)
         pipe.send(gc_size(network, N))
     pipe.close()
 
 def attack_comparison_async(network, fractions):
+    """
+    Given a network to attack, a list of fractions of nodes to remove from the
+    network, and a list of attack functions, run those attack functions on the
+    network over the given node fractions asynchronously and return the results
+    of each attack function.
+    """
 
-    r1, r2 = Pipe()
-    t1, t2 = Pipe()
-    rn1, rn2 = Pipe()
-    tn1, tn2 = Pipe()
-    N = len(network)
 
+    random_parent, random_child = Pipe()
+    targeted_parent, targeted_child = Pipe()
+    rn_parent, rn_child = Pipe()
+    tn_parent, tn_child = Pipe()
 
     rnd = Process(name="random", target=run_sweeping_attack,
-                  args=(random_attack, r2,))
+                  args=(random_attack, random_child,))
     tgt = Process(name="targeted", target=run_sweeping_attack,
-                  args=(targeted_attack, t2,))
+                  args=(targeted_attack, targeted_child,))
     rnd_neighbor = Process(name="random_neighbor", target=run_sweeping_attack,
-                           args=(random_neighbor_attack, rn2,))
+                           args=(random_neighbor_attack, rn_child,))
     tgt_neighbor = Process(name="Targeted_neighbor", target=run_sweeping_attack,
-                           args=(targeted_neighbor_attack, tn2,))
+                           args=(targeted_neighbor_attack, tn_child,))
 
 
 
@@ -66,7 +83,7 @@ def attack_comparison_async(network, fractions):
     rnd_neighbor.start()
     tgt_neighbor.start()
 
-    for pipe in [r1, t1, rn1, tn1]:
+    for pipe in [random_parent, targeted_parent, rn_parent, tn_parent]:
         pipe.send(network)
         pipe.send(fractions)
 
@@ -80,24 +97,24 @@ def attack_comparison_async(network, fractions):
     rn_results = []
     tn_results = []
 
-    while r1.poll():
-        random_results.append(r1.recv())
-    r1.close()
+    while random_parent.poll():
+        random_results.append(random_parent.recv())
+    random_parent.close()
     print len(random_results), "random results recieved"
 
-    while t1.poll():
-        targeted_results.append(t1.recv())
-    t1.close()
+    while targeted_parent.poll():
+        targeted_results.append(targeted_parent.recv())
+    targeted_parent.close()
     print len(targeted_results), "targeted results recieved"
 
-    while rn1.poll():
-        rn_results.append(rn1.recv())
-    rn1.close()
+    while rn_parent.poll():
+        rn_results.append(rn_parent.recv())
+    rn_parent.close()
     print len(rn_results), "random neighbor results recieved"
 
-    while tn1.poll():
-        tn_results.append(tn1.recv())
-    tn1.close()
+    while tn_parent.poll():
+        tn_results.append(tn_parent.recv())
+    tn_parent.close()
     print len(tn_results), "targeted neighbor results recieved"
 
     print "Attack Comparison Complete"

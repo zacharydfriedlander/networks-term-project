@@ -38,18 +38,19 @@
   filename : datasets/powergrid.txt
   directed : No
   data : {}
+
 ---
   name : ecoli
   filename : datasets/ecoli_links.txt
   directed : No
   data :
     score : float
----
- name : drosophilia
- filename : datasets/drosophilia_links.txt
- directed : No
- data :
-   score : float
+# ---
+#  name : drosophilia
+#  filename : datasets/drosophilia_links.txt
+#  directed : No
+#  data :
+#    score : float
 
 # ---
 # name : celegans

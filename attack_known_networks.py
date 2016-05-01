@@ -1,24 +1,33 @@
 #! /usr/bin/env python2
-
-import networkx
-import attack_comparison as ac
-from numpy import linspace
-import yaml
-import os.path
+""" Main Module"""
 import argparse
+import os.path
+
+import yaml
+import networkx
+
+from numpy import linspace
+import attack_comparison as ac
+
+FRACS = linspace(0.05, 0.95, 19)
 
 def main():
+    """
+    Program Driver. Parses command line arguments to determine where to store
+    output pickle files and what networks to attack, reads in networks from the
+    given source, runs all necessary attacks, and pickles the output for later
+    use.
+    """
 
     aparse = argparse.ArgumentParser(usage="Attack a collection of networks")
     aparse.add_argument('--network_file', '-f', action='store',
                         default='networks.yaml',
                         help="Path to network config (default: ./networks.yaml)",
-                        dest='config_path'
-                        )
+                        dest='config_path')
     aparse.add_argument('--picklejar', '-p', action='store',
                         default='.',
                         help='output for pickle files (default: current directory)',
-                        )
+                       )
     aparse.add_argument('--update', '-u', action='store_true',
                         help='Only run network processes for networks which have' +
                         'not already been analyzed.')
@@ -26,7 +35,6 @@ def main():
 
     cfg = open(args.config_path, 'r')
 
-    FRACS = linspace(0.05, 0.95, 19)
 
     for net_attrs in yaml.safe_load_all(cfg):
         picklename = net_attrs["name"] + ".pickle"

@@ -1,5 +1,5 @@
 import networkx
-from attack_tools import attack_comparison_async
+from run_attacks import attack_comparison_async
 import pickle
 
 def compare_to_random_networks(network, fractions, pfile):
